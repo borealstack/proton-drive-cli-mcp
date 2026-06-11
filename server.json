@@ -3,12 +3,12 @@
   "name": "io.github.borealstack/proton-drive-cli-mcp",
   "title": "Proton Drive CLI MCP",
   "description": "MCP server for Proton Drive via the official Proton Drive CLI.",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "websiteUrl": "https://github.com/borealstack/proton-drive-cli-mcp#readme",
   "repository": {
     "url": "https://github.com/borealstack/proton-drive-cli-mcp",
     "source": "github",
-    "id": "1265303879"
+    "id": "1266483273"
   },
   "icons": [
     {
@@ -23,7 +23,7 @@
     {
       "registryType": "npm",
       "identifier": "@borealstack/proton-drive-cli-mcp",
-      "version": "0.1.0",
+      "version": "0.1.1",
       "transport": {
         "type": "stdio"
       }

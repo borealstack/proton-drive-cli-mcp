@@ -1,6 +1,6 @@
 {
   "name": "@borealstack/proton-drive-cli-mcp",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "MCP server for Proton Drive that wraps the official Proton Drive CLI.",
   "type": "module",
   "packageManager": "bun@1.3.14",

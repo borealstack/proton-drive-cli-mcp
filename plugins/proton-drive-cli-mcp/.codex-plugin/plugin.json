@@ -1,6 +1,6 @@
 {
   "name": "proton-drive-cli-mcp",
-  "version": "0.1.0+codex.20260610192500",
+  "version": "0.1.1+codex.20260611192417",
   "description": "Codex plugin that exposes Proton Drive through the official Proton Drive CLI MCP server.",
   "author": {
     "name": "Proton Drive CLI MCP contributors"

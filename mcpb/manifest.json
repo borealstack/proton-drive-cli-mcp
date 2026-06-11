@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "proton-drive-cli-mcp",
   "display_name": "Proton Drive CLI MCP",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Use Proton Drive from MCP clients through the official Proton Drive CLI.",
   "long_description": "A local MCP server that exposes Proton Drive file, folder, sharing, and invitation workflows while delegating authentication and encrypted Drive behavior to the official Proton Drive CLI. It does not collect Proton credentials.",
   "author": {

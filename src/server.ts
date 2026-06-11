@@ -15,7 +15,7 @@ const confirm = z.literal(true).describe("Must be true to confirm this operation
 export function createServer(cli = new ProtonDriveCli()): McpServer {
   const server = new McpServer({
     name: "proton-drive-cli-mcp",
-    version: "0.1.0",
+    version: "0.1.1",
   });
 
   server.registerTool(
