@@ -1,0 +1,17 @@
+Proton Drive CLI MCP
+
+This project is an independent MCP server and Codex plugin maintained by its
+contributors. It is not affiliated with, endorsed by, sponsored by, or approved
+by Proton AG.
+
+Proton, Proton Drive, and related marks are trademarks or registered trademarks
+of Proton AG or its affiliates. Those names are used here only to identify
+compatibility with Proton Drive and the official Proton Drive CLI.
+
+The project does not bundle Proton Drive or the Proton Drive CLI. When
+auto-install is enabled, the server downloads the official Proton Drive CLI from
+Proton's public download index and verifies the checksum published by Proton.
+
+The MIT License in this repository covers only this project's source code and
+documentation. It does not grant rights to Proton's services, software,
+trademarks, branding, or user content.

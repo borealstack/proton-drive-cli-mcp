@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "proton-drive-cli": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@borealstack/proton-drive-cli-mcp"
+      ]
+    }
+  }
+}

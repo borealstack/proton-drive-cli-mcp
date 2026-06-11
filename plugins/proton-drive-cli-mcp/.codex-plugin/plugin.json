@@ -1,0 +1,38 @@
+{
+  "name": "proton-drive-cli-mcp",
+  "version": "0.1.0+codex.20260610192500",
+  "description": "Codex plugin that exposes Proton Drive through the official Proton Drive CLI MCP server.",
+  "author": {
+    "name": "Proton Drive CLI MCP contributors"
+  },
+  "homepage": "https://github.com/borealstack/proton-drive-cli-mcp#readme",
+  "license": "MIT",
+  "keywords": [
+    "proton-drive",
+    "mcp",
+    "mcp-server",
+    "cloud-storage",
+    "codex-plugin",
+    "cli"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Proton Drive CLI MCP",
+    "shortDescription": "Browse and manage Proton Drive from Codex.",
+    "longDescription": "Provides a local MCP server that wraps the official Proton Drive CLI for authenticated file, folder, sharing, and invitation workflows. Authentication stays in the Proton CLI and OS secret store.",
+    "developerName": "Proton Drive CLI MCP contributors",
+    "category": "Productivity",
+    "capabilities": [
+      "MCP server",
+      "Files",
+      "Sharing"
+    ],
+    "brandColor": "#6D4AFF",
+    "defaultPrompt": [
+      "Check my Proton Drive auth status.",
+      "List the root of my Proton Drive.",
+      "Upload this file to Proton Drive."
+    ]
+  },
+  "mcpServers": "./.mcp.json"
+}
