@@ -17,9 +17,17 @@ inspection tools.
 
 ## Reporting Vulnerabilities
 
-Please report suspected vulnerabilities through GitHub issues if public
-discussion is acceptable. If the report contains private reproduction details,
-open a minimal issue asking for a private contact path first.
+Please report suspected vulnerabilities privately through GitHub Security
+Advisories:
+
+https://github.com/borealstack/proton-drive-cli-mcp/security/advisories/new
+
+If private vulnerability reporting is unavailable, open a minimal public issue
+asking for a private contact path. Do not include private reproduction details
+in the public issue.
+
+The project aims to acknowledge vulnerability reports within 7 days and publish
+coordinated disclosure updates once a fix or mitigation is available.
 
 Do not include real Proton credentials, session data, private file contents, or
 share-link passwords in reports.

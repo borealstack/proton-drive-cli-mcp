@@ -2,7 +2,7 @@
   "manifest_version": "0.3",
   "name": "proton-drive-cli-mcp",
   "display_name": "Proton Drive CLI MCP",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Manage Proton Drive from MCP clients through Proton's official CLI without exposing Proton credentials.",
   "long_description": "A local MCP server that lets Claude, Codex, VS Code/Copilot, and other MCP clients list, upload, download, share, trash, and manage Proton Drive files while delegating authentication, encrypted Drive behavior, and session storage to Proton's official CLI. It does not request or store Proton credentials.",
   "author": {
@@ -40,6 +40,14 @@
   },
   "tools": [
     {
+      "name": "proton_drive_diagnose",
+      "description": "Check CLI discovery, version, PATH status, authentication, and the next setup action."
+    },
+    {
+      "name": "proton_drive_setup",
+      "description": "Install the official CLI if needed and diagnose setup readiness."
+    },
+    {
       "name": "proton_drive_auth_status",
       "description": "Check whether the Proton Drive CLI can access the logged-in account."
     },
@@ -73,7 +81,11 @@
     },
     {
       "name": "proton_drive_list",
-      "description": "List children under a Proton Drive path."
+      "description": "List children under a Proton Drive path with bounded output."
+    },
+    {
+      "name": "proton_drive_list_async",
+      "description": "Start a background folder listing job."
     },
     {
       "name": "proton_drive_info",
@@ -88,8 +100,32 @@
       "description": "Upload one or more local files or folders."
     },
     {
+      "name": "proton_drive_upload_async",
+      "description": "Start a background upload job."
+    },
+    {
       "name": "proton_drive_download",
       "description": "Download one or more Proton Drive paths."
+    },
+    {
+      "name": "proton_drive_download_async",
+      "description": "Start a background download job."
+    },
+    {
+      "name": "proton_drive_job_status",
+      "description": "Inspect background list, upload, or download jobs."
+    },
+    {
+      "name": "proton_drive_job_cancel",
+      "description": "Cancel a running background list, upload, or download job."
+    },
+    {
+      "name": "proton_drive_read_text",
+      "description": "Read a small Proton Drive text file with size and binary safeguards."
+    },
+    {
+      "name": "proton_drive_write_text",
+      "description": "Write a small UTF-8 text file to Proton Drive."
     },
     {
       "name": "proton_drive_rename",

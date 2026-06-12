@@ -5,7 +5,7 @@ Proton's official CLI without exposing Proton credentials.
 
 ## What It Provides
 
-- MCP tools for Proton Drive auth status, browser login, file operations, sharing, trash, and invitations.
+- MCP tools for Proton Drive setup diagnosis, browser login, bounded listing, background transfers, text-file helpers, sharing, trash, and invitations.
 - A safe default auth flow that delegates login to the official Proton Drive CLI.
 - No Proton password or token storage in the MCP server or plugin.
 
@@ -18,10 +18,11 @@ The official CLI command name is `proton-drive`. The CLI path usually should not
 
 ## First Use
 
-1. Ask Codex to call `proton_drive_auth_status`.
-2. If unauthenticated, call `proton_drive_auth_login`.
-3. Finish the browser login flow. The tool returns quickly and does not wait for browser completion.
-4. Call `proton_drive_auth_status` again.
+1. Ask Codex to call `proton_drive_diagnose`.
+2. If setup is incomplete, call `proton_drive_setup`.
+3. If unauthenticated, call `proton_drive_auth_login`.
+4. Finish the browser login flow. The tool returns quickly and does not wait for browser completion.
+5. Call `proton_drive_diagnose` again.
 
 Use `proton_drive_auth_login_status` to inspect the background login process, or `proton_drive_auth_login_cancel` with `confirm: true` to stop it.
 

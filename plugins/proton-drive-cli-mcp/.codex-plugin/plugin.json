@@ -1,6 +1,6 @@
 {
   "name": "proton-drive-cli-mcp",
-  "version": "0.1.1+codex.20260611192417",
+  "version": "0.1.2+codex.20260612182708",
   "description": "Codex plugin for managing Proton Drive through Proton's official CLI without exposing Proton credentials.",
   "author": {
     "name": "Proton Drive CLI MCP contributors"
@@ -21,7 +21,7 @@
   "interface": {
     "displayName": "Proton Drive CLI MCP",
     "shortDescription": "Manage Proton Drive through Proton's official CLI.",
-    "longDescription": "Provides a local MCP server that lets Codex list, upload, download, share, trash, and manage Proton Drive files through Proton's official CLI. Authentication stays in the Proton CLI and OS secret store, and the plugin does not request or store Proton credentials.",
+    "longDescription": "Provides a local MCP server that lets Codex diagnose setup, list, upload, download, read and write small text files, share, trash, and manage Proton Drive files through Proton's official CLI. Authentication stays in the Proton CLI and OS secret store, and the plugin does not request or store Proton credentials.",
     "developerName": "Proton Drive CLI MCP contributors",
     "category": "Productivity",
     "capabilities": [
@@ -31,7 +31,7 @@
     ],
     "brandColor": "#6D4AFF",
     "defaultPrompt": [
-      "Check my Proton Drive auth status.",
+      "Diagnose my Proton Drive MCP setup.",
       "List the root of my Proton Drive.",
       "Upload this file to Proton Drive."
     ]

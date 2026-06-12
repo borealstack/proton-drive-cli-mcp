@@ -1,6 +1,6 @@
 {
   "name": "@borealstack/proton-drive-cli-mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Manage Proton Drive from Claude, Codex, VS Code/Copilot, and other MCP clients through Proton's official CLI without exposing Proton credentials.",
   "type": "module",
   "packageManager": "bun@1.3.14",
@@ -58,7 +58,10 @@
   "files": [
     "dist",
     "assets",
-    "docs",
+    "docs/AUTH.md",
+    "docs/DEVELOPMENT.md",
+    "docs/RESEARCH.md",
+    "docs/TOOLS.md",
     "mcpb",
     "plugins",
     "server.json",

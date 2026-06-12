@@ -9,6 +9,9 @@ test("built server exposes tools over stdio under Node.js", async () => {
     const response = await client.request("tools/list", {});
     assert.ok(Array.isArray(response.result?.tools));
     assert.ok(response.result.tools.some((tool) => tool.name === "proton_drive_auth_status"));
+    assert.ok(response.result.tools.some((tool) => tool.name === "proton_drive_diagnose"));
+    assert.ok(response.result.tools.some((tool) => tool.name === "proton_drive_upload_async"));
+    assert.ok(response.result.tools.some((tool) => tool.name === "proton_drive_read_text"));
   } finally {
     client.close();
   }

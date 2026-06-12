@@ -1,7 +1,7 @@
 import { spawn, type ChildProcessByStdio } from "node:child_process";
 import type { Readable } from "node:stream";
 import { extractUrls } from "./format.js";
-import type { BackgroundCommandSnapshot, BackgroundCommandState } from "./types.js";
+import type { BackgroundCommandSnapshot, BackgroundCommandState, BackgroundJobKind } from "./types.js";
 
 const MAX_BUFFER_CHARS = 40_000;
 
@@ -20,6 +20,7 @@ export class BackgroundCommand {
     private readonly command: string,
     private readonly args: string[],
     maxSessionMs: number,
+    private readonly metadata: { jobId?: string | undefined; kind?: BackgroundJobKind | undefined; label?: string | undefined } = {},
   ) {
     this.child = spawn(command, args, {
       env: process.env,
@@ -73,6 +74,9 @@ export class BackgroundCommand {
   snapshot(): BackgroundCommandSnapshot {
     const combined = `${this.stdout}\n${this.stderr}`;
     return {
+      jobId: this.metadata.jobId,
+      kind: this.metadata.kind,
+      label: this.metadata.label,
       command: this.command,
       args: this.args,
       pid: this.child.pid,
@@ -105,7 +109,7 @@ export class BackgroundCommandManager {
       return this.activeCommand.snapshotAfter(Math.min(options.captureMs, 1_000));
     }
 
-    this.activeCommand = new BackgroundCommand(command, args, options.maxSessionMs);
+    this.activeCommand = new BackgroundCommand(command, args, options.maxSessionMs, { kind: "auth_login" });
     return this.activeCommand.snapshotAfter(options.captureMs);
   }
 
@@ -117,6 +121,49 @@ export class BackgroundCommandManager {
     const snapshot = this.activeCommand?.cancel();
     this.activeCommand = undefined;
     return snapshot;
+  }
+}
+
+export class BackgroundJobManager {
+  private readonly jobs = new Map<string, BackgroundCommand>();
+
+  start(
+    kind: BackgroundJobKind,
+    command: string,
+    args: string[],
+    options: { captureMs: number; maxSessionMs: number; label?: string | undefined },
+  ): Promise<BackgroundCommandSnapshot> {
+    this.pruneCompletedJobs();
+    const jobId = `${kind}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+    const job = new BackgroundCommand(command, args, options.maxSessionMs, { jobId, kind, label: options.label });
+    this.jobs.set(jobId, job);
+    return job.snapshotAfter(options.captureMs);
+  }
+
+  snapshot(jobId: string): BackgroundCommandSnapshot | undefined {
+    return this.jobs.get(jobId)?.snapshot();
+  }
+
+  snapshots(): BackgroundCommandSnapshot[] {
+    this.pruneCompletedJobs();
+    return [...this.jobs.values()].map((job) => job.snapshot());
+  }
+
+  cancel(jobId: string): BackgroundCommandSnapshot | undefined {
+    const job = this.jobs.get(jobId);
+    if (!job) return undefined;
+    const snapshot = job.cancel();
+    this.jobs.delete(jobId);
+    return snapshot;
+  }
+
+  private pruneCompletedJobs(): void {
+    const snapshots = [...this.jobs.entries()].map(([jobId, job]) => [jobId, job.snapshot()] as const);
+    const completed = snapshots.filter(([, snapshot]) => snapshot.state !== "running");
+    const maxCompleted = 25;
+    for (const [jobId] of completed.slice(0, Math.max(0, completed.length - maxCompleted))) {
+      this.jobs.delete(jobId);
+    }
   }
 }
 

@@ -1,15 +1,21 @@
 import { describe, expect, test } from "bun:test";
+import { writeFile } from "node:fs/promises";
+import { basename, join } from "node:path";
 import { BackgroundCommandManager } from "../src/background.js";
 import { ProtonDriveCli } from "../src/cli.js";
 import { formatCommandFailure, redactArgs } from "../src/errors.js";
-import { extractUrls, parseJsonOutput } from "../src/format.js";
+import { extractUrls, formatBackgroundSnapshot, parseJsonOutput } from "../src/format.js";
 import type { CliRunner, CommandResult, RunOptions } from "../src/types.js";
 
 class FakeRunner implements CliRunner {
   readonly calls: Array<{ command: string; args: string[]; options: RunOptions | undefined }> = [];
   private readonly results: CommandResult[];
+  private readonly onRun: ((command: string, args: string[], options: RunOptions | undefined, callIndex: number) => Promise<Partial<CommandResult> | void> | Partial<CommandResult> | void) | undefined;
 
-  constructor(results: Array<Partial<CommandResult> & { stdout?: string }> = [{}]) {
+  constructor(
+    results: Array<Partial<CommandResult> & { stdout?: string }> = [{}],
+    onRun?: (command: string, args: string[], options: RunOptions | undefined, callIndex: number) => Promise<Partial<CommandResult> | void> | Partial<CommandResult> | void,
+  ) {
     this.results = results.map((result) => ({
       command: process.execPath,
       args: [],
@@ -20,13 +26,15 @@ class FakeRunner implements CliRunner {
       timedOut: false,
       ...result,
     }));
+    this.onRun = onRun;
   }
 
   async run(command: string, args: string[], options?: RunOptions): Promise<CommandResult> {
     this.calls.push({ command, args, options });
+    const override = await this.onRun?.(command, args, options, this.calls.length - 1);
     const next = this.results.shift() ?? this.results.at(-1);
     if (!next) throw new Error("No fake command result configured.");
-    return { ...next, command, args };
+    return { ...next, ...override, command, args };
   }
 }
 
@@ -230,6 +238,81 @@ describe("ProtonDriveCli", () => {
     expect(status.authenticated).toBe(false);
     expect(status.detail).toContain("proton_drive_auth_login");
   });
+
+  test("diagnoses ready setup with version and auth checks", async () => {
+    const runner = new FakeRunner([{ stdout: "Proton Drive CLI test\n" }, { stdout: "[]" }]);
+    const cli = new ProtonDriveCli({ cliPath: process.execPath, runner, authStatusCacheMs: 10_000 });
+
+    const diagnosis = await cli.diagnose({ fresh: true });
+
+    expect(diagnosis.ready).toBe(true);
+    expect(diagnosis.cli.found).toBe(true);
+    expect(diagnosis.cli.version).toContain("Proton Drive CLI");
+    expect(diagnosis.auth.authenticated).toBe(true);
+    expect(diagnosis.nextAction).toContain("Ready");
+  });
+
+  test("caches successful version checks", async () => {
+    const runner = new FakeRunner([{ stdout: "version-one" }, { stdout: "version-two" }]);
+    const cli = new ProtonDriveCli({ cliPath: process.execPath, runner, versionCacheMs: 10_000 });
+
+    const first = await cli.version();
+    const second = await cli.version();
+
+    expect(first.stdout).toBe("version-one");
+    expect(second.stdout).toBe("version-one");
+    expect(runner.calls).toHaveLength(1);
+  });
+
+  test("starts and reports background list jobs", async () => {
+    const cli = new ProtonDriveCli({ cliPath: process.execPath });
+
+    const snapshot = await cli.startListJob({
+      path: "/my-files",
+      captureMs: 10,
+      maxSessionMs: 30_000,
+    });
+
+    expect(snapshot.jobId).toStartWith("list-");
+    expect(snapshot.kind).toBe("list");
+    expect(cli.jobSnapshot(snapshot.jobId ?? "")?.jobId).toBe(snapshot.jobId);
+    cli.cancelJob(snapshot.jobId ?? "");
+  });
+
+  test("reads a small downloaded text file and rejects binary content", async () => {
+    const runner = new FakeRunner([{ stdout: "{\"ok\":true}" }, { stdout: "{\"ok\":true}" }], async (_command, args) => {
+      const localFolder = args.at(-1);
+      if (typeof localFolder === "string") {
+        await writeFile(join(localFolder, "note.txt"), args.includes("/my-files/binary.bin") ? Buffer.from([0, 1, 2]) : "hello");
+      }
+    });
+    const cli = new ProtonDriveCli({ cliPath: process.execPath, runner });
+
+    const text = await cli.readText({ path: "/my-files/note.txt" });
+
+    expect(text.text).toBe("hello");
+    await expect(cli.readText({ path: "/my-files/binary.bin" })).rejects.toThrow("binary");
+  });
+
+  test("writes text through a temporary upload file", async () => {
+    const runner = new FakeRunner([{ stdout: "{\"ok\":true}" }]);
+    const cli = new ProtonDriveCli({ cliPath: process.execPath, runner });
+
+    const result = await cli.writeText({
+      path: "/my-files/Notes/hello.txt",
+      text: "hello world",
+      conflictStrategy: "replace",
+    });
+
+    expect(result.parentPath).toBe("/my-files/Notes");
+    expect(result.name).toBe("hello.txt");
+    expect(result.bytes).toBe(11);
+    expect(runner.calls[0]?.args[0]).toBe("filesystem");
+    expect(runner.calls[0]?.args[1]).toBe("upload");
+    expect(runner.calls[0]?.args).toContain("replace");
+    expect(basename(runner.calls[0]?.args.at(-2) ?? "")).toBe("hello.txt");
+    expect(runner.calls[0]?.args.at(-1)).toBe("/my-files/Notes");
+  });
 });
 
 describe("format helpers", () => {
@@ -251,6 +334,38 @@ describe("format helpers", () => {
     expect(extractUrls("Open https://account.proton.me/a and https://account.proton.me/a")).toEqual([
       "https://account.proton.me/a",
     ]);
+  });
+
+  test("formats background JSON output with bounded previews", () => {
+    const json = Array.from({ length: 75 }, (_, index) => ({
+      name: `file-${index}`,
+      detail: "x".repeat(100),
+    }));
+    const formatted = formatBackgroundSnapshot({
+      jobId: "list-test",
+      kind: "list",
+      command: "proton-drive",
+      args: ["filesystem", "list", "-j", "/my-files"],
+      pid: 123,
+      state: "completed",
+      stdout: JSON.stringify(json),
+      stderr: "",
+      exitCode: 0,
+      signal: null,
+      durationMs: 10,
+      timedOut: false,
+      loginUrls: [],
+    });
+
+    expect(formatted.output.stdoutTruncated).toBe(true);
+    expect(formatted.output.stdoutSuppressedBecauseJsonParsed).toBe(true);
+    expect(formatted.json).toEqual({
+      items: json.slice(0, 50).map((item) => ({ name: item.name })),
+      totalItems: 75,
+      returnedItems: 50,
+      limit: 50,
+      truncated: true,
+    });
   });
 
   test("redacts separate and inline sensitive CLI arguments", () => {

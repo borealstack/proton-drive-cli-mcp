@@ -3,7 +3,7 @@
   "name": "io.github.borealstack/proton-drive-cli-mcp",
   "title": "Proton Drive CLI MCP",
   "description": "Manage Proton Drive from MCP clients through Proton's official CLI without exposing credentials.",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "websiteUrl": "https://github.com/borealstack/proton-drive-cli-mcp#readme",
   "repository": {
     "url": "https://github.com/borealstack/proton-drive-cli-mcp",
@@ -54,7 +54,7 @@
     {
       "registryType": "npm",
       "identifier": "@borealstack/proton-drive-cli-mcp",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "transport": {
         "type": "stdio"
       }

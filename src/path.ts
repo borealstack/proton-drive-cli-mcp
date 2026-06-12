@@ -3,6 +3,11 @@ import path from "node:path";
 import type { CliRunner } from "./types.js";
 import { installProtonDriveCli, managedCliPath } from "./installer.js";
 
+export interface ResolveCliPathOptions {
+  autoInstall?: boolean | undefined;
+  fallbackToCommand?: boolean | undefined;
+}
+
 async function isExecutableFile(candidate: string): Promise<boolean> {
   try {
     await access(candidate);
@@ -37,7 +42,7 @@ function candidateFiles(): string[] {
   return [...candidates];
 }
 
-export async function resolveCliPath(explicitPath?: string, runner?: CliRunner): Promise<string> {
+export async function resolveCliPath(explicitPath?: string, runner?: CliRunner, options: ResolveCliPathOptions = {}): Promise<string> {
   if (explicitPath) {
     if (await isExecutableFile(explicitPath)) {
       return explicitPath;
@@ -70,12 +75,17 @@ export async function resolveCliPath(explicitPath?: string, runner?: CliRunner):
     }
   }
 
-  if (process.env.PROTON_DRIVE_CLI_AUTO_INSTALL !== "0") {
+  const autoInstall = options.autoInstall ?? process.env.PROTON_DRIVE_CLI_AUTO_INSTALL !== "0";
+  if (autoInstall) {
     const installed = await installProtonDriveCli({
       installDir: process.env.PROTON_DRIVE_CLI_INSTALL_DIR,
       indexUrl: process.env.PROTON_DRIVE_CLI_DOWNLOAD_INDEX,
     });
     return installed.path;
+  }
+
+  if (options.fallbackToCommand === false) {
+    throw new Error("Proton Drive CLI was not found. Run proton_drive_cli_install or set PROTON_DRIVE_CLI_PATH.");
   }
 
   return "proton-drive";

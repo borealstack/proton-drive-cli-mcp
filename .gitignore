@@ -2,6 +2,11 @@ node_modules/
 dist/
 bun.lockb
 .proton-drive-mcp-smoke/
+release-assets/
+*.tgz
+*.mcpb
+*.sigstore.json
+SHA256SUMS
 *.log
 .env
 .env.*

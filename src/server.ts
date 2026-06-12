@@ -1,7 +1,7 @@
 import { McpServer } from "@modelcontextprotocol/server";
 import * as z from "zod/v4";
 import { ProtonDriveCli } from "./cli.js";
-import { formatAuthLoginSnapshot, prettyResult } from "./format.js";
+import { formatAuthLoginSnapshot, formatBackgroundSnapshot, prettyResult } from "./format.js";
 import type { CommandResult, JsonCommandResult } from "./types.js";
 
 const remotePath = z.string().min(1).describe("Proton Drive POSIX path, for example /my-files/Reports.");
@@ -11,12 +11,45 @@ const nodeType = z.enum(["file", "folder", "album", "photo"]);
 const inviteRole = z.enum(["viewer", "editor", "admin"]);
 const publicLinkRole = z.enum(["viewer", "editor"]);
 const confirm = z.literal(true).describe("Must be true to confirm this operation.");
+const captureMs = z.number().int().min(0).max(10_000).default(250);
+const transferSessionMs = z.number().int().min(30_000).max(86_400_000).default(3_600_000);
+const listLimit = z.number().int().min(1).max(1_000).default(200);
+const listOffset = z.number().int().min(0).default(0);
+const textMaxBytes = z.number().int().min(1).max(5_000_000).default(262_144);
 
 export function createServer(cli = new ProtonDriveCli()): McpServer {
   const server = new McpServer({
     name: "proton-drive-cli-mcp",
-    version: "0.1.1",
+    version: "0.1.2",
   });
+
+  server.registerTool(
+    "proton_drive_diagnose",
+    {
+      title: "Diagnose Proton Drive MCP Setup",
+      description: "Check CLI discovery, managed install status, version, PATH status, authentication, and the next setup action.",
+      inputSchema: z.object({
+        includeAuth: z.boolean().default(true).describe("Check authentication by asking the CLI to list /my-files."),
+        fresh: z.boolean().default(false).describe("Bypass cached auth/version checks."),
+      }),
+    },
+    async ({ includeAuth, fresh }) => textResult(await cli.diagnose({ includeAuth, fresh })),
+  );
+
+  server.registerTool(
+    "proton_drive_setup",
+    {
+      title: "Set Up Proton Drive MCP",
+      description: "Install the official CLI if needed, then diagnose CLI discovery, PATH status, version, and authentication.",
+      inputSchema: z.object({
+        installIfMissing: z.boolean().default(true).describe("Install the official CLI if it cannot be found."),
+        managePath: z.boolean().default(true).describe("Add the managed CLI directory to PATH where supported."),
+        includeAuth: z.boolean().default(true).describe("Check authentication by asking the CLI to list /my-files."),
+        fresh: z.boolean().default(false).describe("Bypass cached auth/version checks."),
+      }),
+    },
+    async (input) => textResult(await cli.setup(input)),
+  );
 
   server.registerTool(
     "proton_drive_auth_status",
@@ -135,9 +168,11 @@ export function createServer(cli = new ProtonDriveCli()): McpServer {
     {
       title: "Proton Drive CLI Version",
       description: "Show the Proton Drive CLI and SDK versions.",
-      inputSchema: z.object({}),
+      inputSchema: z.object({
+        fresh: z.boolean().default(false).describe("Bypass the short version cache and call the Proton CLI."),
+      }),
     },
-    async () => commandResult(await cli.version()),
+    async ({ fresh }) => commandResult(await cli.version({ fresh })),
   );
 
   server.registerTool(
@@ -182,13 +217,31 @@ export function createServer(cli = new ProtonDriveCli()): McpServer {
     "proton_drive_list",
     {
       title: "List Proton Drive Folder",
-      description: "List children under a Proton Drive path.",
+      description: "List children under a Proton Drive path with bounded output to keep responses manageable.",
       inputSchema: z.object({
         path: remotePath.default("/my-files"),
         type: nodeType.optional().describe("Optional node type filter."),
+        limit: listLimit.describe("Maximum number of returned items. The full CLI response is sliced by the MCP server."),
+        offset: listOffset.describe("Number of items to skip from the CLI result before returning items."),
+        timeoutMs: z.number().int().min(5_000).max(600_000).default(120_000),
       }),
     },
-    async ({ path, type }) => commandResult(await cli.list(path, type)),
+    async ({ path, type, limit, offset, timeoutMs }) => listResult(await cli.list(path, type, { timeoutMs }), { limit, offset }),
+  );
+
+  server.registerTool(
+    "proton_drive_list_async",
+    {
+      title: "Start Background Proton Drive List",
+      description: "Start a background folder listing job and return a job ID for status polling.",
+      inputSchema: z.object({
+        path: remotePath.default("/my-files"),
+        type: nodeType.optional().describe("Optional node type filter."),
+        captureMs,
+        maxSessionMs: z.number().int().min(30_000).max(600_000).default(120_000),
+      }),
+    },
+    async (input) => textResult(formatBackgroundSnapshot(await cli.startListJob(input))),
   );
 
   server.registerTool(
@@ -233,6 +286,25 @@ export function createServer(cli = new ProtonDriveCli()): McpServer {
   );
 
   server.registerTool(
+    "proton_drive_upload_async",
+    {
+      title: "Start Background Proton Drive Upload",
+      description: "Start a background upload job and return a job ID for status polling or cancellation.",
+      inputSchema: z.object({
+        localPaths: z.array(localPath).min(1),
+        parentPath: remotePath.default("/my-files"),
+        conflictStrategy: conflictStrategy.optional(),
+        fileConflictStrategy: conflictStrategy.optional(),
+        folderConflictStrategy: conflictStrategy.optional(),
+        skipThumbnails: z.boolean().default(false),
+        captureMs,
+        maxSessionMs: transferSessionMs,
+      }),
+    },
+    async (input) => textResult(formatBackgroundSnapshot(await cli.startUploadJob(input))),
+  );
+
+  server.registerTool(
     "proton_drive_download",
     {
       title: "Download From Proton Drive",
@@ -247,6 +319,89 @@ export function createServer(cli = new ProtonDriveCli()): McpServer {
       }),
     },
     async (input) => commandResult(await cli.download(input)),
+  );
+
+  server.registerTool(
+    "proton_drive_download_async",
+    {
+      title: "Start Background Proton Drive Download",
+      description: "Start a background download job and return a job ID for status polling or cancellation.",
+      inputSchema: z.object({
+        paths: z.array(remotePath).min(1),
+        localFolder: localPath,
+        conflictStrategy: conflictStrategy.optional(),
+        fileConflictStrategy: conflictStrategy.optional(),
+        folderConflictStrategy: conflictStrategy.optional(),
+        captureMs,
+        maxSessionMs: transferSessionMs,
+      }),
+    },
+    async (input) => textResult(formatBackgroundSnapshot(await cli.startDownloadJob(input))),
+  );
+
+  server.registerTool(
+    "proton_drive_job_status",
+    {
+      title: "Proton Drive Background Job Status",
+      description: "Inspect one background list, upload, or download job, or list retained jobs when no job ID is provided.",
+      inputSchema: z.object({
+        jobId: z.string().min(1).optional(),
+      }),
+    },
+    async ({ jobId }) => {
+      if (jobId) {
+        const snapshot = cli.jobSnapshot(jobId);
+        return textResult(snapshot ? formatBackgroundSnapshot(snapshot) : { status: "not_found", jobId });
+      }
+      return textResult(cli.jobSnapshots().map(formatBackgroundSnapshot));
+    },
+  );
+
+  server.registerTool(
+    "proton_drive_job_cancel",
+    {
+      title: "Cancel Proton Drive Background Job",
+      description: "Cancel a running background list, upload, or download job.",
+      inputSchema: z.object({
+        jobId: z.string().min(1),
+        confirm,
+      }),
+    },
+    async ({ jobId }) => {
+      const snapshot = cli.cancelJob(jobId);
+      return textResult(snapshot ? formatBackgroundSnapshot(snapshot) : { status: "not_found", jobId });
+    },
+  );
+
+  server.registerTool(
+    "proton_drive_read_text",
+    {
+      title: "Read Proton Drive Text File",
+      description: "Download one small Proton Drive file to a temporary directory, reject binary or oversized content, and return UTF-8 text.",
+      inputSchema: z.object({
+        path: remotePath,
+        maxBytes: textMaxBytes,
+        timeoutMs: z.number().int().min(5_000).max(600_000).default(120_000),
+      }),
+    },
+    async (input) => textResult(await cli.readText(input)),
+  );
+
+  server.registerTool(
+    "proton_drive_write_text",
+    {
+      title: "Write Proton Drive Text File",
+      description: "Write a small UTF-8 text file through a temporary local file and upload it to Proton Drive.",
+      inputSchema: z.object({
+        path: remotePath.describe("Destination file path, for example /my-files/Reports/note.txt."),
+        text: z.string(),
+        maxBytes: textMaxBytes,
+        conflictStrategy: conflictStrategy.default("replace"),
+        timeoutMs: z.number().int().min(5_000).max(600_000).default(120_000),
+        confirm,
+      }),
+    },
+    async ({ path, text, maxBytes, conflictStrategy, timeoutMs }) => textResult(await cli.writeText({ path, text, maxBytes, conflictStrategy, timeoutMs })),
   );
 
   server.registerTool(
@@ -451,6 +606,21 @@ function commandResult(result: CommandResult | JsonCommandResult) {
   return {
     content: [{ type: "text" as const, text: prettyResult(result) }],
   };
+}
+
+function listResult(result: JsonCommandResult, options: { limit: number; offset: number }) {
+  if (!Array.isArray(result.json)) return commandResult(result);
+  const totalItems = result.json.length;
+  const items = result.json.slice(options.offset, options.offset + options.limit);
+  return textResult({
+    items,
+    totalItems,
+    returnedItems: items.length,
+    offset: options.offset,
+    limit: options.limit,
+    truncated: options.offset + items.length < totalItems,
+    durationMs: result.durationMs,
+  });
 }
 
 function textResult(value: unknown) {

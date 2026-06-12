@@ -1,5 +1,8 @@
 import type { BackgroundCommandSnapshot, CommandResult, JsonCommandResult } from "./types.js";
 
+const BACKGROUND_OUTPUT_PREVIEW_CHARS = 4_000;
+const BACKGROUND_JSON_ARRAY_ITEMS = 50;
+
 export function parseJsonOutput<T = unknown>(result: CommandResult): JsonCommandResult<T> {
   const trimmed = result.stdout.trim();
   if (!trimmed) {
@@ -54,4 +57,94 @@ export function formatAuthLoginSnapshot(snapshot: BackgroundCommandSnapshot) {
       durationMs: snapshot.durationMs,
     },
   };
+}
+
+export function formatBackgroundSnapshot(snapshot: BackgroundCommandSnapshot) {
+  const stdout = snapshot.stdout.trim();
+  const stderr = snapshot.stderr.trim();
+  const parsed = snapshot.state === "completed" && stdout ? tryParseJson(stdout) : undefined;
+  const stdoutPreview = parsed === undefined ? previewText(stdout) : { text: "", truncated: stdout.length > 0 };
+  const stderrPreview = previewText(stderr);
+  return {
+    jobId: snapshot.jobId,
+    kind: snapshot.kind,
+    label: snapshot.label,
+    state: snapshot.state,
+    pid: snapshot.pid,
+    durationMs: snapshot.durationMs,
+    exitCode: snapshot.exitCode,
+    signal: snapshot.signal,
+    timedOut: snapshot.timedOut,
+    output: {
+      stdoutBytes: Buffer.byteLength(stdout),
+      stderrBytes: Buffer.byteLength(stderr),
+      stdout: stdoutPreview.text,
+      stdoutTruncated: stdoutPreview.truncated,
+      stdoutSuppressedBecauseJsonParsed: parsed !== undefined && stdout.length > 0,
+      stderr: stderrPreview.text,
+      stderrTruncated: stderrPreview.truncated,
+    },
+    json: parsed === undefined ? undefined : summarizeJson(parsed),
+  };
+}
+
+function tryParseJson(text: string): unknown | undefined {
+  try {
+    return JSON.parse(text);
+  } catch {
+    return undefined;
+  }
+}
+
+function previewText(text: string): { text: string; truncated: boolean } {
+  if (text.length <= BACKGROUND_OUTPUT_PREVIEW_CHARS) {
+    return { text, truncated: false };
+  }
+
+  return {
+    text: text.slice(0, BACKGROUND_OUTPUT_PREVIEW_CHARS),
+    truncated: true,
+  };
+}
+
+function summarizeJson(value: unknown): unknown {
+  if (!Array.isArray(value)) return value;
+
+  const items = value.slice(0, BACKGROUND_JSON_ARRAY_ITEMS).map(summarizeJsonArrayItem);
+  return {
+    items,
+    totalItems: value.length,
+    returnedItems: items.length,
+    limit: BACKGROUND_JSON_ARRAY_ITEMS,
+    truncated: items.length < value.length,
+  };
+}
+
+function summarizeJsonArrayItem(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+
+  const record = value as Record<string, unknown>;
+  const summary: Record<string, unknown> = {};
+  assignIfPresent(summary, "uid", record.uid);
+  assignIfPresent(summary, "ok", record.ok);
+  assignIfPresent(summary, "name", normalizeName(record.name));
+  assignIfPresent(summary, "type", record.type);
+  assignIfPresent(summary, "mediaType", record.mediaType);
+  assignIfPresent(summary, "totalStorageSize", record.totalStorageSize);
+  assignIfPresent(summary, "isShared", record.isShared);
+  assignIfPresent(summary, "isSharedPublicly", record.isSharedPublicly);
+  assignIfPresent(summary, "creationTime", record.creationTime);
+  assignIfPresent(summary, "modificationTime", record.modificationTime);
+
+  return Object.keys(summary).length > 0 ? summary : value;
+}
+
+function normalizeName(value: unknown): unknown {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return value;
+  const record = value as Record<string, unknown>;
+  return typeof record.value === "string" ? record.value : value;
+}
+
+function assignIfPresent(target: Record<string, unknown>, key: string, value: unknown): void {
+  if (value !== undefined) target[key] = value;
 }

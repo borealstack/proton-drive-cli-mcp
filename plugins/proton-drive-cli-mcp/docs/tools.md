@@ -1,7 +1,9 @@
 # Tool Summary
 
-Authentication:
+Setup and authentication:
 
+- `proton_drive_diagnose`
+- `proton_drive_setup`
 - `proton_drive_auth_status`
 - `proton_drive_auth_login`
 - `proton_drive_auth_login_status`
@@ -17,10 +19,17 @@ CLI:
 Filesystem:
 
 - `proton_drive_list`
+- `proton_drive_list_async`
 - `proton_drive_info`
 - `proton_drive_create_folder`
 - `proton_drive_upload`
+- `proton_drive_upload_async`
 - `proton_drive_download`
+- `proton_drive_download_async`
+- `proton_drive_job_status`
+- `proton_drive_job_cancel`
+- `proton_drive_read_text`
+- `proton_drive_write_text`
 - `proton_drive_rename`
 - `proton_drive_copy`
 - `proton_drive_move`

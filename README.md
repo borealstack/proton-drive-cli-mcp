@@ -74,8 +74,9 @@ npm run build
 node dist/index.js
 ```
 
-Then call `proton_drive_auth_status`. If the CLI is not authenticated, call
-`proton_drive_auth_login`, finish the browser sign-in, and check status again.
+Then call `proton_drive_diagnose` or `proton_drive_setup`. If the CLI is not
+authenticated, call `proton_drive_auth_login`, finish the browser sign-in, and
+check status again.
 
 ## Install Paths
 
@@ -122,9 +123,9 @@ Set `PROTON_DRIVE_CLI_AUTO_INSTALL=0` to disable managed install. Set
 
 Core tools:
 
-- Auth: `proton_drive_auth_status`, `proton_drive_auth_login`, `proton_drive_auth_login_status`, `proton_drive_auth_login_cancel`, `proton_drive_auth_logout`
+- Setup/Auth: `proton_drive_diagnose`, `proton_drive_setup`, `proton_drive_auth_status`, `proton_drive_auth_login`, `proton_drive_auth_login_status`, `proton_drive_auth_login_cancel`, `proton_drive_auth_logout`
 - CLI: `proton_drive_cli_install`, `proton_drive_cli_version`, `proton_drive_cli_help`
-- Files: `proton_drive_list`, `proton_drive_info`, `proton_drive_create_folder`, `proton_drive_upload`, `proton_drive_download`
+- Files: `proton_drive_list`, `proton_drive_list_async`, `proton_drive_info`, `proton_drive_create_folder`, `proton_drive_upload`, `proton_drive_upload_async`, `proton_drive_download`, `proton_drive_download_async`, `proton_drive_job_status`, `proton_drive_job_cancel`, `proton_drive_read_text`, `proton_drive_write_text`
 - Mutations: `proton_drive_rename`, `proton_drive_copy`, `proton_drive_move`, `proton_drive_trash`, `proton_drive_restore`, `proton_drive_delete`, `proton_drive_empty_trash`
 - Sharing: `proton_drive_sharing_status`, `proton_drive_sharing_invite`, `proton_drive_sharing_remove`, `proton_drive_sharing_set_url`, `proton_drive_sharing_remove_url`
 - Invitations: `proton_drive_invitation_list`, `proton_drive_invitation_accept`, `proton_drive_invitation_reject`
@@ -139,8 +140,12 @@ Full tool details are in [docs/TOOLS.md](docs/TOOLS.md).
 - The npm publish workflow is prepared for GitHub OIDC trusted publishing and
   runs `npm publish --provenance`; npm package settings must authorize the
   workflow before a future manual release.
+- Future GitHub releases build npm and MCPB assets, attach SHA-256 checksums,
+  and publish Sigstore-backed artifact attestations for those assets.
 - OpenSSF Scorecard runs from [scorecard.yml](.github/workflows/scorecard.yml)
   and publishes SARIF results for public repository security signals.
+- Dependabot and CodeQL are configured for dependency updates and SAST coverage,
+  and GitHub Actions are pinned to commit SHAs with version comments.
 - MCP Registry metadata in [server.json](server.json) includes publisher-provided
   categories, keywords, safety notes, and install details for downstream indexes.
 

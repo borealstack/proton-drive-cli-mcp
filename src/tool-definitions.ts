@@ -6,6 +6,16 @@ export interface ToolDefinition {
 
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
+    name: "proton_drive_diagnose",
+    title: "Diagnose Proton Drive MCP Setup",
+    description: "Check CLI discovery, version, PATH status, authentication, and the next setup action.",
+  },
+  {
+    name: "proton_drive_setup",
+    title: "Set Up Proton Drive MCP",
+    description: "Install the official CLI if needed and diagnose setup readiness.",
+  },
+  {
     name: "proton_drive_auth_status",
     title: "Proton Drive Auth Status",
     description: "Check whether the Proton Drive CLI can access the logged-in account.",
@@ -46,10 +56,17 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     description: "Show help for the root CLI or a supported command.",
   },
   { name: "proton_drive_list", title: "List Proton Drive Folder", description: "List children under a Proton Drive path." },
+  { name: "proton_drive_list_async", title: "Start Background Proton Drive List", description: "Start a background folder listing job." },
   { name: "proton_drive_info", title: "Get Proton Drive Node Info", description: "Get metadata for a Proton Drive file or folder." },
   { name: "proton_drive_create_folder", title: "Create Proton Drive Folder", description: "Create a folder under a Proton Drive parent path." },
   { name: "proton_drive_upload", title: "Upload To Proton Drive", description: "Upload one or more local files or folders." },
+  { name: "proton_drive_upload_async", title: "Start Background Proton Drive Upload", description: "Start a background upload job." },
   { name: "proton_drive_download", title: "Download From Proton Drive", description: "Download one or more Proton Drive paths." },
+  { name: "proton_drive_download_async", title: "Start Background Proton Drive Download", description: "Start a background download job." },
+  { name: "proton_drive_job_status", title: "Proton Drive Background Job Status", description: "Inspect background list, upload, or download jobs." },
+  { name: "proton_drive_job_cancel", title: "Cancel Proton Drive Background Job", description: "Cancel a running background list, upload, or download job." },
+  { name: "proton_drive_read_text", title: "Read Proton Drive Text File", description: "Read a small Proton Drive text file with size and binary safeguards." },
+  { name: "proton_drive_write_text", title: "Write Proton Drive Text File", description: "Write a small UTF-8 text file to Proton Drive." },
   { name: "proton_drive_rename", title: "Rename Proton Drive Node", description: "Rename a Proton Drive file or folder." },
   { name: "proton_drive_copy", title: "Copy Proton Drive Nodes", description: "Copy one or more Proton Drive nodes." },
   { name: "proton_drive_move", title: "Move Proton Drive Nodes", description: "Move one or more Proton Drive nodes." },
