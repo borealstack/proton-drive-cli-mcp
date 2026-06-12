@@ -19,7 +19,13 @@ Set `PROTON_DRIVE_CLI_PATH` when the CLI is not on PATH.
 
 If no CLI is found and `PROTON_DRIVE_CLI_PATH` is not set, the server auto-installs the latest official CLI listed at `https://proton.me/download/drive/cli/index.html`. The download is selected for the current OS and CPU architecture and verified against Proton's SHA-512 checksum before use.
 
-Set `PROTON_DRIVE_CLI_AUTO_INSTALL=0` to disable automatic installation. Set `PROTON_DRIVE_CLI_INSTALL_DIR` to choose a custom managed install directory.
+The official CLI command name is `proton-drive`. The managed installer uses
+`%LOCALAPPDATA%\Programs\proton-drive-cli\proton-drive.exe` on Windows and
+`~/.local/bin/proton-drive` on macOS/Linux. On Windows, the installer adds the
+managed install directory to the user PATH when possible; open a new terminal
+before running `proton-drive version`.
+
+Set `PROTON_DRIVE_CLI_AUTO_INSTALL=0` to disable automatic installation. Set `PROTON_DRIVE_CLI_INSTALL_DIR` to choose a custom managed install directory. Set `PROTON_DRIVE_CLI_MANAGE_PATH=0` to skip PATH management.
 
 Windows example:
 

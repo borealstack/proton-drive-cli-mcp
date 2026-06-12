@@ -3,8 +3,8 @@
   "name": "proton-drive-cli-mcp",
   "display_name": "Proton Drive CLI MCP",
   "version": "0.1.1",
-  "description": "Use Proton Drive from MCP clients through the official Proton Drive CLI.",
-  "long_description": "A local MCP server that exposes Proton Drive file, folder, sharing, and invitation workflows while delegating authentication and encrypted Drive behavior to the official Proton Drive CLI. It does not collect Proton credentials.",
+  "description": "Manage Proton Drive from MCP clients through Proton's official CLI without exposing Proton credentials.",
+  "long_description": "A local MCP server that lets Claude, Codex, VS Code/Copilot, and other MCP clients list, upload, download, share, trash, and manage Proton Drive files while delegating authentication, encrypted Drive behavior, and session storage to Proton's official CLI. It does not request or store Proton credentials.",
   "author": {
     "name": "Proton Drive CLI MCP contributors",
     "url": "https://github.com/borealstack/proton-drive-cli-mcp"
@@ -160,6 +160,11 @@
     "proton-drive-cli",
     "cloud-storage",
     "file-sharing",
+    "file-management",
+    "claude-code",
+    "codex",
+    "vs-code",
+    "github-copilot",
     "claude-desktop"
   ],
   "license": "MIT",

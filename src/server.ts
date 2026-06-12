@@ -124,9 +124,10 @@ export function createServer(cli = new ProtonDriveCli()): McpServer {
       inputSchema: z.object({
         force: z.boolean().default(false).describe("Overwrite the managed CLI binary if it already exists."),
         installDir: localPath.optional().describe("Optional install directory. Defaults to a user-local managed path."),
+        managePath: z.boolean().default(true).describe("Add the managed CLI directory to PATH where the platform supports safe user PATH updates."),
       }),
     },
-    async ({ force, installDir }) => textResult(await cli.installCli({ force, installDir })),
+    async ({ force, installDir, managePath }) => textResult(await cli.installCli({ force, installDir, managePath })),
   );
 
   server.registerTool(

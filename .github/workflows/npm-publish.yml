@@ -28,7 +28,8 @@ jobs:
           bun-version: 1.3.14
       - run: npm ci
       - run: npm run check
-      - run: npm publish --access public
+      - name: Publish npm package with provenance
+        run: npm publish --access public --provenance
       - name: Install mcp-publisher
         shell: bash
         run: |

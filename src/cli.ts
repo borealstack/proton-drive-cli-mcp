@@ -38,7 +38,7 @@ export class ProtonDriveCli {
     return this.resolvedCliPath;
   }
 
-  async installCli(options: { force?: boolean | undefined; installDir?: string | undefined } = {}): Promise<InstallCliResult> {
+  async installCli(options: { force?: boolean | undefined; installDir?: string | undefined; managePath?: boolean | undefined } = {}): Promise<InstallCliResult> {
     const installed = await installProtonDriveCli(options);
     this.resolvedCliPath = installed.path;
     this.clearAuthStatusCache();

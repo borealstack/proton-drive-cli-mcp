@@ -17,6 +17,8 @@ The Proton support article documents:
 The official CLI README adds:
 
 - Development builds use Bun.
+- The executable name is `proton-drive`.
+- Source builds produce `release/proton-drive`; add that directory to `PATH` or invoke the binary by full path.
 - `auth login` stores the session in the OS secret store.
 - `PROTON_DRIVE_CACHE_DIR` controls cache, app data, and logs.
 - Default Windows paths include `%LOCALAPPDATA%\proton-drive-cli\Cache`, `Data`, and `Logs`.

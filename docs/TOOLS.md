@@ -45,8 +45,12 @@ Logs out the current CLI session. Input:
 Downloads the latest official Proton Drive CLI for the current OS/CPU, verifies Proton's SHA-512 checksum, and installs it to a user-local managed path. Input:
 
 ```json
-{ "force": false }
+{ "force": false, "managePath": true }
 ```
+
+The install result includes `pathStatus`. On Windows, the installer adds the
+managed install directory to the user PATH when possible so new terminals can
+run `proton-drive`.
 
 `proton_drive_cli_version`
 

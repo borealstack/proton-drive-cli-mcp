@@ -2,7 +2,7 @@
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.borealstack/proton-drive-cli-mcp",
   "title": "Proton Drive CLI MCP",
-  "description": "MCP server for Proton Drive via the official Proton Drive CLI.",
+  "description": "Manage Proton Drive from MCP clients through Proton's official CLI without exposing credentials.",
   "version": "0.1.1",
   "websiteUrl": "https://github.com/borealstack/proton-drive-cli-mcp#readme",
   "repository": {
@@ -19,6 +19,37 @@
       ]
     }
   ],
+  "_meta": {
+    "io.modelcontextprotocol.registry/publisher-provided": {
+      "categories": [
+        "cloud-storage",
+        "file-management",
+        "secure-file-sharing"
+      ],
+      "keywords": [
+        "proton-drive",
+        "proton-drive-cli",
+        "claude",
+        "codex",
+        "vs-code",
+        "github-copilot",
+        "mcp"
+      ],
+      "summary": "Use Claude, Codex, VS Code/Copilot, and other MCP clients to list, upload, download, share, trash, and manage Proton Drive files through Proton's official CLI.",
+      "safety": [
+        "Delegates authentication, encrypted Drive behavior, and session storage to Proton's official CLI.",
+        "Does not request or store Proton credentials.",
+        "Requires confirmation for destructive and account-changing tools."
+      ],
+      "install": {
+        "command": "npx",
+        "args": [
+          "-y",
+          "@borealstack/proton-drive-cli-mcp"
+        ]
+      }
+    }
+  },
   "packages": [
     {
       "registryType": "npm",

@@ -25,3 +25,8 @@ Leave `PROTON_DRIVE_CLI_PATH` unset to exercise managed CLI discovery and auto-i
 - `src/server.ts` only registers MCP tools and schemas.
 - Unit tests mock the CLI runner and do not touch Proton Drive.
 - `test/mcp-stdio.node-check.mjs` verifies the built MCP stdio server starts under Node.js.
+- Running `npx -y @borealstack/proton-drive-cli-mcp` inside this package
+  checkout can be misleading because npm may prefer the local package metadata
+  instead of installing the published package into a temporary exec directory.
+  Use `node dist/index.js` for local stdio testing, or run `npx` from a
+  different directory.
